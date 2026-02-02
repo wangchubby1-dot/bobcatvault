@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Sequence Matrix — Simon Mode</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    body {
+      margin: 0;
+      background: #0b1020;
+      font-family: system-ui, sans-serif;
+      color: #d0f7ff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+    }
+
+    .game {
+      background: #101a2f;
+      border-radius: 16px;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+      padding: 24px 28px 32px;
+      width: 520px;
+      max-width: 95vw;
+    }
+
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+
+    .title {
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      color: #4dfcff;
+    }
+
+    .stats {
+      display: flex;
+      gap: 16px;
+      font-size: 14px;
+      color: #8fdfe5;
+    }
+
+    .bar {
+      height: 6px;
+      background: #1b2c4a;
+      border-radius: 4px;
+      overflow: hidden;
+      margin-bottom: 20px;
+    }
+
+    .bar-fill {
+      height: 100%;
+      width: 100%;
+      background: linear-gradient(90deg, #35ff7a, #4dfcff);
+      transition: width 0.1s linear;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 8px;
+      margin-bottom: 20px;
+    }
+
+    .cell {
+      border: 2px solid #243b5e;
+      border-radius: 6px;
+      padding-top: 100%;
+      position: relative;
+      background: #0d1629;
+      user-select: none;
+      cursor: pointer;
+    }
+
+    .cell.flash {
+      background: #4dfcff;
+      box-shadow: 0 0 14px rgba(77,252,255,0.8);
+    }
+
+    .cell.correct {
+      background: #35ff7a;
+      box-shadow: 0 0 14px rgba(53,255,122,0.8);
+    }
+
+    .footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    button {
+      background: #1b3a70;
+      color: #4dfcff;
+      border: none;
+      border-radius: 8px;
+      padding: 8px 14px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: #2450a0;
+    }
+
+    .hint {
+      font-size: 13px;
+      color: #7fbac4;
+    }
+  </style>
+</head>
+<body>
+  <div class="game">
+    <div class="header">
+      <div class="title">SEQUENCE MATRIX — SIMON MODE</div>
+      <div class="stats">
+        <div>Stage: <span id="stage">1</span>/7</div>
+        <div>Status: <span id="status">WATCH</span></div>
+      </div>
+    </div>
+
+    <div class="bar">
+      <div class="bar-fill" id="barFill"></div>
+    </div>
+
+    <div class="grid" id="grid"></div>
+
+    <div class="footer">
+      <div class="hint">Watch the pattern, then repeat it</div>
+      <button id="restart">Restart</button>
+    </div>
+  </div>
+
+  <script>
+    const gridEl = document.getElementById("grid");
+    const stageEl = document.getElementById("stage");
+    const statusEl = document.getElementById("status");
+    const barFill = document.getElementById("barFill");
+    const restartBtn = document.getElementById("restart");
+
+    const GRID_SIZE = 7 * 7;
+    const MAX_STAGE = 7;
+
+    let cells = [];
+    let sequence = [];
+    let playerIndex = 0;
+    let stage = 1;
+    let busy = true;
+
+    function buildGrid() {
+      gridEl.innerHTML = "";
+      cells = [];
+      for (let i = 0; i < GRID_SIZE; i++) {
+        const cell = document.createElement("div");
+        cell.className = "cell";
+        cell.dataset.index = i;
+        cell.addEventListener("click", onCellClick);
+        gridEl.appendChild(cell);
+        cells.push(cell);
+      }
+    }
+
+    function randomCell() {
+      return Math.floor(Math.random() * GRID_SIZE);
+    }
+
+    function updateBar(progress) {
+      barFill.style.width = `${progress * 100}%`;
+    }
+
+    async function flashCell(index, colorClass = "flash") {
+      const cell = cells[index];
+      cell.classList.add(colorClass);
+      await sleep(400);
+      cell.classList.remove(colorClass);
+      await sleep(150);
+    }
+
+    async function playSequence() {
+      busy = true;
+      statusEl.textContent = "WATCH";
+      updateBar(0);
+
+      for (let i = 0; i < sequence.length; i++) {
+        updateBar((i + 1) / sequence.length);
+        await flashCell(sequence[i]);
+      }
+
+      statusEl.textContent = "REPEAT";
+      busy = false;
+      playerIndex = 0;
+    }
+
+    function sleep(ms) {
+      return new Promise(res => setTimeout(res, ms));
+    }
+
+    function nextStage() {
+      if (stage >= MAX_STAGE) {
+        statusEl.textContent = "COMPLETE";
+        alert("Access Granted — All 7 stages cleared!");
+        return;
+      }
+
+      stage++;
+      stageEl.textContent = stage;
+      sequence.push(randomCell());
+      setTimeout(playSequence, 600);
+    }
+
+    async function onCellClick(e) {
+      if (busy) return;
+
+      const index = Number(e.currentTarget.dataset.index);
+
+      await flashCell(index, "correct");
+
+      if (index !== sequence[playerIndex]) {
+        statusEl.textContent = "FAILED";
+        alert(`Access Denied — You reached stage ${stage}`);
+        busy = true;
+        return;
+      }
+
+      playerIndex++;
+      updateBar(playerIndex / sequence.length);
+
+      if (playerIndex >= sequence.length) {
+        busy = true;
+        setTimeout(nextStage, 600);
+      }
+    }
+
+    function startGame() {
+      stage = 1;
+      sequence = [randomCell()];
+      stageEl.textContent = stage;
+      buildGrid();
+      setTimeout(playSequence, 800);
+    }
+
+    restartBtn.addEventListener("click", startGame);
+
+    startGame();
+  </script>
+</body>
+</html>
