@@ -1,33 +1,1012 @@
 <!DOCTYPE html>
-<html><head><meta charset="utf-8"><title>Sequence Matrix</title>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Sequence Matrix</title>
+
 <style>
-body{margin:0;background:#09111f;color:#dff;font-family:Arial;height:100vh;display:flex;justify-content:center;align-items:center}
-.game{width:520px;background:#101a2f;padding:24px;border-radius:16px;box-shadow:0 0 30px #000}
-.header{display:flex;justify-content:space-between}.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:20px 0}
-.cell{aspect-ratio:1;background:#0d1629;border:2px solid #234;border-radius:8px;transition:.15s}
-.flash{background:#4dfcff;box-shadow:0 0 20px #4dfcff}.good{background:#35ff7a}.bad{background:#ff4b4b}
-.bar{height:8px;background:#234;border-radius:8px;overflow:hidden}.fill{height:100%;background:linear-gradient(90deg,#35ff7a,#4dfcff);width:100%}
-.overlay{position:fixed;inset:0;display:none;align-items:center;justify-content:center;font-size:48px;background:#0008}
-button{padding:8px 16px}
-</style></head>
-<body><div class=game>
-<div class=header><div>SEQUENCE MATRIX</div><div>Stage <span id=s>1</span> | <span id=st>WATCH</span></div></div>
-<div class=bar><div class=fill id=f></div></div>
-<div class=grid id=g></div><button id=r>Restart</button></div>
-<div class=overlay id=o></div>
+
+*{
+    box-sizing:border-box;
+    user-select:none;
+}
+
+body{
+    margin:0;
+    height:100vh;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    background:
+    radial-gradient(circle,#182b55,#050912);
+    font-family:Arial,Helvetica,sans-serif;
+    color:white;
+}
+
+
+.game{
+
+    width:520px;
+    padding:25px;
+
+    background:#101a2f;
+
+    border-radius:20px;
+
+    box-shadow:
+    0 0 40px rgba(0,0,0,.8),
+    inset 0 0 30px rgba(77,252,255,.05);
+
+}
+
+
+
+.header{
+
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+
+    margin-bottom:15px;
+
+}
+
+
+
+.title{
+
+    color:#4dfcff;
+    font-size:20px;
+    font-weight:bold;
+    letter-spacing:3px;
+
+}
+
+
+
+.stats{
+
+    text-align:right;
+    color:#8fdfe5;
+    font-size:14px;
+
+}
+
+
+
+.status{
+
+    margin-top:5px;
+    color:#4dfcff;
+
+}
+
+
+
+
+.timer{
+
+    height:8px;
+    width:100%;
+
+    background:#1b2c4a;
+
+    border-radius:10px;
+
+    overflow:hidden;
+
+}
+
+
+
+.timer-fill{
+
+    height:100%;
+    width:100%;
+
+    background:
+    linear-gradient(
+    90deg,
+    #35ff7a,
+    #4dfcff
+    );
+
+    transition:.1s linear;
+
+}
+
+
+
+
+.grid{
+
+    margin-top:25px;
+
+    display:grid;
+
+    grid-template-columns:
+    repeat(4,1fr);
+
+    gap:12px;
+
+}
+
+
+
+.cell{
+
+    aspect-ratio:1;
+
+    background:#0c1528;
+
+    border-radius:12px;
+
+    border:2px solid #263c61;
+
+    cursor:pointer;
+
+    transition:.15s;
+
+}
+
+
+
+.cell:hover{
+
+    border-color:#4dfcff;
+
+}
+
+
+
+.cell.flash{
+
+    background:#4dfcff;
+
+    box-shadow:
+    0 0 25px #4dfcff;
+
+    transform:scale(1.08);
+
+}
+
+
+
+.cell.good{
+
+    background:#35ff7a;
+
+    box-shadow:
+    0 0 25px #35ff7a;
+
+    transform:scale(1.08);
+
+}
+
+
+
+.cell.bad{
+
+    background:#ff3b4d;
+
+    box-shadow:
+    0 0 25px #ff3b4d;
+
+    transform:scale(1.08);
+
+}
+
+
+
+.footer{
+
+    margin-top:20px;
+
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+
+}
+
+
+
+button{
+
+    background:#1b3a70;
+
+    border:none;
+
+    color:#4dfcff;
+
+    padding:10px 20px;
+
+    border-radius:8px;
+
+    cursor:pointer;
+
+    font-weight:bold;
+
+}
+
+
+
+button:hover{
+
+    background:#2856a0;
+
+}
+
+
+
+.overlay{
+
+    position:fixed;
+
+    inset:0;
+
+    display:none;
+
+    align-items:center;
+
+    justify-content:center;
+
+    background:rgba(0,0,0,.75);
+
+    font-size:48px;
+
+    font-weight:bold;
+
+    z-index:5;
+
+}
+
+
+
+.success{
+
+    color:#35ff7a;
+
+}
+
+
+
+.fail{
+
+    color:#ff3b4d;
+
+}
+
+
+
+.shake{
+
+    animation:shake .25s;
+
+}
+
+
+
+@keyframes shake{
+
+0%{transform:translateX(0)}
+25%{transform:translateX(-15px)}
+50%{transform:translateX(15px)}
+75%{transform:translateX(-15px)}
+100%{transform:translateX(0)}
+
+}
+
+
+</style>
+
+</head>
+
+
+<body>
+
+
+<div class="game" id="game">
+
+
+<div class="header">
+
+<div>
+
+<div class="title">
+SEQUENCE MATRIX
+</div>
+
+<div class="status">
+STATUS:
+<span id="status">
+WATCH
+</span>
+</div>
+
+</div>
+
+
+<div class="stats">
+
+<div>
+STAGE:
+<span id="stage">
+1
+</span>
+</div>
+
+<div>
+TIME:
+<span id="time">
+10
+</span>s
+</div>
+
+</div>
+
+</div>
+
+
+
+<div class="timer">
+
+<div class="timer-fill" id="timerFill"></div>
+
+</div>
+
+
+
+<div class="grid" id="grid"></div>
+
+
+
+<div class="footer">
+
+<div>
+Repeat the sequence
+</div>
+
+<button id="restart">
+Restart
+</button>
+
+</div>
+
+
+</div>
+
+
+
+<div class="overlay" id="overlay"></div>
+
+
 <script>
-const g=document.getElementById('g'),f=document.getElementById('f'),s=document.getElementById('s'),st=document.getElementById('st'),o=document.getElementById('o');
-let seq=[],cells=[],idx=0,busy=true,stage=1,time=8000,timer;
-function beep(fr,d){let a=new(window.AudioContext||webkitAudioContext)(),osc=a.createOscillator(),gain=a.createGain();osc.frequency.value=fr;osc.connect(gain);gain.connect(a.destination);osc.start();gain.gain.exponentialRampToValueAtTime(.0001,a.currentTime+d);osc.stop(a.currentTime+d);}
-for(let i=0;i<16;i++){let c=document.createElement('div');c.className='cell';c.onclick=()=>click(i);g.appendChild(c);cells.push(c);}
-const sl=m=>new Promise(r=>setTimeout(r,m));
-async function flash(i,cl='flash'){cells[i].classList.add(cl);beep(700,.08);await sl(250);cells[i].classList.remove(cl);await sl(100);}
-async function play(){busy=true;st.textContent='WATCH';for(let x of seq)await flash(x);busy=false;idx=0;st.textContent='REPEAT';startTimer();}
-function startTimer(){clearInterval(timer);let max=Math.max(3000,8000-(stage-1)*500),left=max;f.style.width='100%';timer=setInterval(()=>{left-=50;f.style.width=(left/max*100)+'%';if(left<=0){clearInterval(timer);lose();}},50);}
-function click(i){if(busy)return;flash(i,'good');if(i!==seq[idx]){lose();return;}idx++;if(idx===seq.length){clearInterval(timer);stage++;if(stage>7)return win();s.textContent=stage;time-=500;seq.push(Math.floor(Math.random()*16));setTimeout(play,600);}}
-function lose(){busy=true;beep(180,.3);document.body.animate([{transform:'translateX(-8px)'},{transform:'translateX(8px)'},{transform:'translateX(0)'}],{duration:200});show('ACCESS DENIED','#f44');}
-function win(){busy=true;beep(1000,.5);show('ACCESS GRANTED','#3f7');}
-function show(t,c){o.style.display='flex';o.style.color=c;o.textContent=t;setTimeout(()=>o.style.display='none',1800);}
-function start(){stage=1;s.textContent=1;seq=[Math.floor(Math.random()*16)];setTimeout(play,500);}
-document.getElementById('r').onclick=start;start();
-</script></body></html>
+  const grid = document.getElementById("grid");
+const stageText = document.getElementById("stage");
+const statusText = document.getElementById("status");
+const timeText = document.getElementById("time");
+const timerFill = document.getElementById("timerFill");
+const overlay = document.getElementById("overlay");
+const game = document.getElementById("game");
+const restart = document.getElementById("restart");
+
+
+const TOTAL_CELLS = 16;
+const MAX_STAGE = 10;
+
+
+let cells = [];
+
+let sequence = [];
+
+let playerSequence = [];
+
+let stage = 1;
+
+let busy = true;
+
+let timer;
+
+let timeLeft;
+
+
+
+/*
+    CREATE 4x4 GRID
+*/
+
+function createGrid(){
+
+    grid.innerHTML = "";
+
+    cells = [];
+
+
+    for(let i = 0; i < TOTAL_CELLS; i++){
+
+        const cell = document.createElement("div");
+
+        cell.className = "cell";
+
+        cell.dataset.id = i;
+
+
+        cell.addEventListener("click",()=>{
+
+            playerClick(i);
+
+        });
+
+
+        grid.appendChild(cell);
+
+        cells.push(cell);
+
+    }
+
+}
+
+
+
+
+/*
+    RANDOM PATTERN PER STAGE
+
+    Stage 1 = 1 random square
+    Stage 2 = 2 random squares
+    Stage 3 = 3 random squares
+
+    Every stage is a NEW pattern
+*/
+
+
+function generateSequence(){
+
+
+    sequence=[];
+
+
+    let last=-1;
+
+
+    for(let i=0;i<stage;i++){
+
+
+        let random;
+
+
+        do{
+
+            random=Math.floor(
+                Math.random()*TOTAL_CELLS
+            );
+
+        }
+        while(random===last);
+
+
+        sequence.push(random);
+
+        last=random;
+
+    }
+
+}
+
+
+
+
+function sleep(ms){
+
+    return new Promise(
+        resolve=>setTimeout(resolve,ms)
+    );
+
+}
+
+
+
+
+
+/*
+    SOUND EFFECTS
+*/
+
+function sound(freq,duration){
+
+
+    const audio =
+    new AudioContext();
+
+
+    const oscillator =
+    audio.createOscillator();
+
+
+    const gain =
+    audio.createGain();
+
+
+
+    oscillator.frequency.value=freq;
+
+
+    oscillator.connect(gain);
+
+    gain.connect(audio.destination);
+
+
+
+    oscillator.start();
+
+
+
+    gain.gain.exponentialRampToValueAtTime(
+
+        0.001,
+
+        audio.currentTime+duration
+
+    );
+
+
+    oscillator.stop(
+        audio.currentTime+duration
+    );
+
+}
+
+
+
+
+/*
+    FLASH TILE
+*/
+
+async function flashCell(id,type="flash"){
+
+
+    const cell=cells[id];
+
+
+    cell.classList.add(type);
+
+
+    sound(
+        type==="bad" ? 180 : 700,
+        .15
+    );
+
+
+
+    await sleep(350);
+
+
+
+    cell.classList.remove(type);
+
+
+
+    await sleep(150);
+
+}
+
+
+
+
+
+/*
+    SHOW GENERATED PATTERN
+*/
+
+
+async function showSequence(){
+
+
+    busy=true;
+
+
+    statusText.textContent="WATCH";
+
+
+    timerFill.style.width="100%";
+
+
+
+    await sleep(500);
+
+
+
+    for(const id of sequence){
+
+
+        await flashCell(id);
+
+
+    }
+
+
+
+    statusText.textContent="REPEAT";
+
+
+    playerSequence=[];
+
+
+    busy=false;
+
+
+    startTimer();
+
+}
+
+
+
+
+
+/*
+    TIMER
+
+    Starts only after WATCH phase
+
+*/
+
+function startTimer(){
+
+
+    clearInterval(timer);
+
+
+
+    let maxTime =
+    Math.max(
+        3000,
+        10000 - ((stage-1)*700)
+    );
+
+
+    timeLeft=maxTime;
+
+
+
+    timer=setInterval(()=>{
+
+
+        timeLeft-=100;
+
+
+
+        let percent =
+        (timeLeft/maxTime)*100;
+
+
+
+        timerFill.style.width =
+        percent+"%";
+
+
+
+        timeText.textContent =
+        (timeLeft/1000)
+        .toFixed(1);
+
+
+
+        if(timeLeft<=0){
+
+
+            clearInterval(timer);
+
+
+            failGame();
+
+
+        }
+
+
+
+    },100);
+
+
+
+}
+
+
+
+
+
+
+/*
+    PLAYER CLICK
+*/
+
+async function playerClick(id){
+
+
+    if(busy)
+        return;
+
+
+
+    clearInterval(timer);
+
+
+
+    playerSequence.push(id);
+
+
+
+    await flashCell(
+        id,
+        "good"
+    );
+
+
+
+    let position =
+    playerSequence.length-1;
+
+
+
+    if(
+        playerSequence[position]
+        !== sequence[position]
+    ){
+
+        failGame();
+
+        return;
+
+    }
+
+
+
+    if(
+        playerSequence.length
+        === sequence.length
+    ){
+
+
+        successStage();
+
+
+    }
+    else{
+
+
+        startTimer();
+
+
+    }
+
+
+}
+
+
+
+
+
+
+/*
+    STAGE COMPLETE
+
+    NEW RANDOM PATTERN
+*/
+
+function successStage(){
+
+
+    clearInterval(timer);
+
+
+    busy=true;
+
+
+    sound(1000,.3);
+
+
+
+    statusText.textContent=
+    "SUCCESS";
+
+
+
+    showOverlay(
+        "STAGE CLEAR",
+        "success"
+    );
+
+
+
+    setTimeout(()=>{
+
+
+        if(stage>=MAX_STAGE){
+
+
+            showOverlay(
+                "ACCESS GRANTED",
+                "success"
+            );
+
+
+            return;
+
+        }
+
+
+
+        stage++;
+
+
+        stageText.textContent=
+        stage;
+
+
+
+        generateSequence();
+
+
+
+        showSequence();
+
+
+
+    },1200);
+
+
+
+}
+
+
+
+
+
+
+/*
+    FAILURE
+*/
+
+function failGame(){
+
+
+    clearInterval(timer);
+
+
+    busy=true;
+
+
+    sound(150,.5);
+
+
+
+    game.classList.add("shake");
+
+
+
+    setTimeout(()=>{
+
+        game.classList.remove("shake");
+
+    },300);
+
+
+
+    showOverlay(
+        "ACCESS DENIED",
+        "fail"
+    );
+
+
+
+}
+
+
+
+
+
+function showOverlay(text,type){
+
+
+    overlay.textContent=text;
+
+
+    overlay.className=
+    "overlay "+type;
+
+
+
+    overlay.style.display="flex";
+
+
+
+    setTimeout(()=>{
+
+
+        overlay.style.display="none";
+
+
+    },1500);
+
+
+
+}
+
+// RESET / START GAME
+
+function startGame(){
+
+
+    clearInterval(timer);
+
+
+
+    stage=1;
+
+
+    stageText.textContent=
+    stage;
+
+
+
+    timeText.textContent=
+    "10";
+
+
+
+    statusText.textContent=
+    "WATCH";
+
+
+
+    overlay.style.display="none";
+
+
+
+    createGrid();
+
+
+
+    generateSequence();
+
+
+
+    showSequence();
+
+
+
+}
+
+
+
+
+
+// RESTART BUTTON
+
+restart.addEventListener(
+    "click",
+    ()=>{
+
+        startGame();
+
+    }
+);
+
+
+
+
+
+
+// START
+
+startGame();
+
+
+</script>
+
+
+</body>
+
+</html>
